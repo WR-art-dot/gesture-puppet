@@ -2,6 +2,10 @@
 
 打开摄像头，用手势操纵一只卡通角色的表情和动作。识别全在浏览器本地跑，画面不上传。
 
+在线试玩：**https://wr-art-dot.github.io/gesture-puppet/**
+
+HTTPS 页面，手机也能打开。第一次进要下约 8MB 的识别模型，等两三秒。
+
 ![界面预览](docs/preview.png)
 
 ## 四个手势
