@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>校准五官位置</title>
+<style>
+  :root{
+    --paper:#FBFAF5; --ink:#26241F; --mute:#8E8A7E; --line:#E5E1D3;
+    --accent:#854F0B; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+    display:flex;flex-direction:column;min-height:100vh;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:18px 26px 13px;border-bottom:1px solid var(--line);
+  }
+  .brand{font-size:13px;letter-spacing:.24em;color:var(--accent);}
+  .brand b{font-weight:600;letter-spacing:.18em;}
+  .hint{font-size:12px;color:var(--mute);}
+
+  main{
+    flex:1;display:grid;grid-template-columns:minmax(320px,1fr) 300px;
+    gap:24px;padding:22px 26px 26px;align-items:start;
+  }
+
+  .board{
+    position:relative;width:100%;max-width:560px;margin:0 auto;
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 14px 30px rgba(90,74,45,.07);
+    overflow:hidden;
+  }
+  .board img{width:100%;height:100%;display:block;}
+  .board svg{position:absolute;inset:0;width:100%;height:100%;touch-action:none;}
+
+  .grab{fill:#fff;stroke-width:3;cursor:grab;}
+  .grab:active{cursor:grabbing;}
+  .shape{fill:none;stroke-width:1.6;stroke-dasharray:6 5;opacity:.85;}
+  .shape.solid{stroke-dasharray:none;}
+  g.sel .shape{opacity:1;stroke-width:2.4;stroke-dasharray:none;}
+  g.sel .grab{stroke-width:4;}
+
+  aside{position:sticky;top:20px;display:flex;flex-direction:column;gap:14px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 15px 16px;}
+  .card h2{font-size:11px;letter-spacing:.24em;color:var(--mute);margin:0 0 10px;font-weight:400;}
+
+  .row{display:flex;justify-content:space-between;align-items:baseline;
+    font-size:12px;padding:5px 0;border-bottom:1px dotted #E7E2D4;color:#4A4740;}
+  .row:last-child{border-bottom:0;}
+  .row b{font-weight:500;font-variant-numeric:tabular-nums;color:#3D3A33;}
+
+  label.sl{display:block;font-size:11.5px;color:#6E6A5F;margin:10px 0 2px;}
+  input[type=range]{width:100%;accent-color:#C08A3E;}
+
+  .prev{height:104px;display:flex;align-items:center;justify-content:center;}
+  .prev svg{height:100px;width:auto;}
+
+  button{
+    font-family:inherit;font-size:12.5px;letter-spacing:.12em;
+    padding:9px 18px;border-radius:999px;border:1px solid #D8CFB6;
+    background:#fff;color:#6B3F05;cursor:pointer;transition:.15s;width:100%;
+  }
+  button:hover{background:#F7F2E4;border-color:#C9B98F;}
+  button.primary{background:#6B3F05;color:#FDF9EE;border-color:#6B3F05;}
+  button.primary:hover{background:#854F0B;}
+  .msg{font-size:11.5px;line-height:1.7;color:var(--mute);min-height:34px;}
+  .msg.ok{color:#3F7A4E;}
+  .msg.err{color:#B4472E;}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#8C877A;}
+  .legend span{display:flex;align-items:center;gap:4px;}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>校准五官</b> · FACE CALIBRATION</div>
+  <div class="hint">拖圆点对齐位置 · 右侧滑块调大小</div>
+</header>
+
+<main>
+  <section class="board" id="board">
+    <img id="bg" alt="">
+    <svg id="ov" xmlns="http://www.w3.org/2000/svg"></svg>
+  </section>
+
+  <aside>
+    <div class="card">
+      <h2>尺寸</h2>
+      <div id="ctrls"><p style="font-size:11.5px;color:#A5A091;margin:0;line-height:1.7;">点左边任意一个圆点，这里会出现它的尺寸滑块。</p></div>
+    </div>
+
+    <div class="card">
+      <h2>实时预览</h2>
+      <div class="prev" id="prev"></div>
+      <div class="legend" style="margin-top:8px;">
+        <span><i style="background:#2F6FBF"></i>眼</span>
+        <span><i style="background:#B4762A"></i>鼻</span>
+        <span><i style="background:#C0503A"></i>嘴</span>
+        <span><i style="background:#D05A82"></i>腮红</span>
+        <span><i style="background:#3F7A4E"></i>轴</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>存盘</h2>
+      <button class="primary" id="save">保存到 face.json</button>
+      <button id="dl" style="margin-top:8px;">下载一份 face.json</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </aside>
+</main>
+
+<script type="module">
+import { setFace, renderCharacter, PRESETS } from './character.js';
+
+const NS = 'http://www.w3.org/2000/svg';
+const bg = document.getElementById('bg');
+const ov = document.getElementById('ov');
+const board = document.getElementById('board');
+const ctrls = document.getElementById('ctrls');
+const prev = document.getElementById('prev');
+const msg = document.getElementById('msg');
+
+let face = null;
+let W = 1000, H = 1000;
+let sel = 'eyeL';
+
+/* 每个把手的颜色与它对应的可调尺寸字段 */
+const HANDLES = [
+  { key: 'eyeL',   color: '#2F6FBF', sizes: [['r', '半径', 0.004, 0.09]] },
+  { key: 'eyeR',   color: '#2F6FBF', sizes: [['r', '半径', 0.004, 0.09]] },
+  { key: 'nose',   color: '#B4762A', sizes: [['rx', '横半径', 0.004, 0.09], ['ry', '纵半径', 0.004, 0.09]] },
+  { key: 'mouth',  color: '#C0503A', sizes: [['w', '嘴宽', 0.02, 0.34]] },
+  { key: 'blushL', color: '#D05A82', sizes: [['rx', '横半径', 0.008, 0.16], ['ry', '纵半径', 0.008, 0.16]] },
+  { key: 'blushR', color: '#D05A82', sizes: [['rx', '横半径', 0.008, 0.16], ['ry', '纵半径', 0.008, 0.16]] },
+  { key: 'pivot',  color: '#3F7A4E', sizes: [] },
+  { key: 'brow',   color: '#7A6CA8', sizes: [['len', '眉长', 0.01, 0.18], ['w', '眉粗', 0.002, 0.04]] },
+];
+
+const S = (tag, attrs) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+
+/* 把一个元素的"实际位置与大小"画成虚线轮廓，方便判断对不对 */
+function geometry(h) {
+  if (h.key === 'pivot') return null;
+  if (h.key === 'brow') {
+    const f = face.brow;
+    return { cx: (face.eyeL.x + face.eyeR.x) / 2, cy: f.y, rx: f.len / 2, ry: Math.max(3, f.w) };
+  }
+  const o = face[h.key];
+  if (h.key === 'mouth') return { cx: o.x, cy: o.y + o.w * 0.2, rx: o.w * 0.5, ry: o.w * 0.34 };
+  if (h.key === 'nose') return { cx: o.x, cy: o.y, rx: o.rx, ry: o.ry };
+  if (h.key === 'eyeL' || h.key === 'eyeR') return { cx: o.x, cy: o.y, rx: o.r, ry: o.r };
+  return { cx: o.x, cy: o.y, rx: o.rx, ry: o.ry };
+}
+
+/* 把手的拖动位置：brow 只有 y 有意义，横向固定在中线 */
+function anchor(h) {
+  if (h.key === 'brow') return { x: (face.eyeL.x + face.eyeR.x) / 2, y: face.brow.y };
+  return { x: face[h.key].x, y: face[h.key].y };
+}
+
+function build() {
+  ov.innerHTML = '';
+  for (const h of HANDLES) {
+    const g = S('g', { 'data-key': h.key });
+    const shape = S('ellipse', { class: 'shape', stroke: h.color });
+    const grab = S('circle', { class: 'grab', r: 8, stroke: h.color });
+    const tag = S('text', {
+      x: 0, y: 0, 'font-size': 13, fill: h.color, 'font-family': 'sans-serif',
+      'text-anchor': 'middle', 'dominant-baseline': 'central', 'pointer-events': 'none',
+    });
+    tag.textContent = { eyeL: '左', eyeR: '右', nose: '鼻', mouth: '嘴', blushL: '腮', blushR: '腮', pivot: '轴', brow: '眉' }[h.key];
+    g.append(shape, grab, tag);
+    g._parts = { shape, grab, tag };
+    ov.appendChild(g);
+    bindDrag(g, h);
+  }
+  refresh();
+}
+
+function refresh() {
+  for (const g of ov.children) {
+    const h = HANDLES.find((x) => x.key === g.dataset.key);
+    const { shape, grab, tag } = g._parts;
+    const a = anchor(h);
+    const geo = geometry(h);
+
+    if (h.key === 'pivot') {
+      shape.setAttribute('cx', a.x);
+      shape.setAttribute('cy', a.y);
+      shape.setAttribute('rx', W * 0.022);
+      shape.setAttribute('ry', W * 0.022);
+      shape.setAttribute('stroke-dasharray', '4 4');
+    } else {
+      shape.setAttribute('cx', geo.cx);
+      shape.setAttribute('cy', geo.cy);
+      shape.setAttribute('rx', Math.max(1, geo.rx));
+      shape.setAttribute('ry', Math.max(1, geo.ry));
+    }
+    grab.setAttribute('cx', a.x);
+    grab.setAttribute('cy', a.y);
+    tag.setAttribute('x', a.x);
+    tag.setAttribute('y', a.y - Math.max(geo ? geo.ry : 0, 10) - 12);
+    g.classList.toggle('sel', g.dataset.key === sel);
+  }
+}
+
+/* 拖动：屏幕坐标换算成图片坐标，只改 x/y */
+function bindDrag(g, h) {
+  g.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    sel = h.key;
+    refresh();
+    renderCtrls();
+    const rect = ov.getBoundingClientRect();
+    const kx = W / rect.width, ky = H / rect.height;
+    const sx = e.clientX, sy = e.clientY;
+    const a0 = anchor(h);
+
+    const move = (ev) => {
+      const x = a0.x + (ev.clientX - sx) * kx;
+      const y = a0.y + (ev.clientY - sy) * ky;
+      if (h.key === 'brow') {
+        face.brow.y = Math.round(y * 10) / 10;
+      } else {
+        face[h.key].x = Math.round(x * 10) / 10;
+        face[h.key].y = Math.round(y * 10) / 10;
+      }
+      refresh();
+      renderPreview();
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      renderCtrls();
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+/* 选中元素后，右侧出现它的尺寸滑块 */
+function renderCtrls() {
+  const h = HANDLES.find((x) => x.key === sel);
+  if (!h || !h.sizes.length) {
+    ctrls.innerHTML = `<p style="font-size:11.5px;color:#A5A091;margin:0;line-height:1.7;">
+      ${h ? h.key === 'pivot' ? '旋转轴：拖动它对准脖子。歪头时整张图绕这里转，放太高会甩头。' : '这个元素没有可调尺寸。' : ''}
+    </p>`;
+    return;
+  }
+  ctrls.innerHTML = '';
+  for (const [field, label, lo, hi] of h.sizes) {
+    const box = face[h.key];
+    const cur = box[field];
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<label class="sl">${label} <b style="float:right;color:#3D3A33">${cur}</b></label>`;
+    const inp = document.createElement('input');
+    inp.type = 'range';
+    inp.min = Math.round(W * lo);
+    inp.max = Math.round(W * hi);
+    inp.step = 1;
+    inp.value = cur;
+    inp.addEventListener('input', () => {
+      face[h.key][field] = +inp.value;
+      wrap.querySelector('b').textContent = inp.value;
+      refresh();
+      renderPreview();
+    });
+    wrap.appendChild(inp);
+    ctrls.appendChild(wrap);
+  }
+}
+
+function renderPreview() {
+  setFace(face);
+  prev.innerHTML = renderCharacter(PRESETS.shy);
+}
+
+async function save() {
+  try {
+    // 写到"本页面所在目录"的 face.json，不是写死根目录
+    const dir = location.pathname.replace(/[^/]*$/, '');
+    const res = await fetch(dir + '__save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(face, null, 2),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    msg.className = 'msg ok';
+    msg.textContent = '已写入 face.json。回到主页面刷新即可看到效果。';
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = '写盘失败。要用 serve.py 启动服务才能直接保存，或者点下面的「下载一份」手动替换。';
+  }
+}
+
+async function download() {
+  const blob = new Blob([JSON.stringify(face, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'face.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  msg.className = 'msg ok';
+  msg.textContent = '已下载，覆盖项目里的 face.json 即可。';
+}
+
+async function init() {
+  try {
+    const res = await fetch('./face.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    face = await res.json();
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = '读不到 face.json。请确认这个页面和 face.json 在同一个目录，并且是通过本地服务打开的。';
+    return;
+  }
+  W = face.canvas.w;
+  H = face.canvas.h;
+  bg.src = face.image;
+  board.style.aspectRatio = `${W} / ${H}`;
+  ov.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  build();
+  renderCtrls();
+  renderPreview();
+}
+
+document.getElementById('save').addEventListener('click', save);
+document.getElementById('dl').addEventListener('click', download);
+init();
+</script>
+</body>
+</html>

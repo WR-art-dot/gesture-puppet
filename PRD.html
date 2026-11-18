@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小熊看见你 · 产品需求文档 v0.3</title>
+<style>
+  :root{
+    --paper:#FBFAF5; --ink:#2C2C2A; --muted:#5F5E5A; --line:#E3E0D6;
+    --brown:#854F0B; --brown-lt:#FAEEDA; --red:#A32D2D; --green:#27500A;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    font-size:15px;line-height:1.85;}
+  .page{max-width:880px;margin:0 auto;padding:56px 40px 80px;}
+  header{border-bottom:3px solid var(--ink);padding-bottom:24px;margin-bottom:40px;}
+  .kicker{font-size:13px;letter-spacing:.35em;color:var(--brown);margin-bottom:10px;}
+  h1{font-size:30px;margin:0 0 8px;font-weight:600;}
+  .sub{color:var(--muted);font-size:14px;}
+  h2{font-size:20px;margin:52px 0 14px;font-weight:600;
+    display:flex;align-items:baseline;gap:12px;}
+  h2 .no{color:var(--brown);font-size:14px;letter-spacing:.1em;}
+  h3{font-size:16px;margin:28px 0 8px;font-weight:600;}
+  p{margin:8px 0;}
+  ul,ol{margin:8px 0;padding-left:22px;}
+  li{margin:4px 0;}
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+  th{background:#F1EFE8;font-weight:600;font-size:13px;}
+  .tag{display:inline-block;font-size:12px;padding:0 8px;border-radius:999px;line-height:20px;white-space:nowrap;}
+  .p0{background:#F7C1C1;color:#791F1F;}
+  .p1{background:#FAC775;color:#633806;}
+  .p2{background:#C0DD97;color:#27500A;}
+  .scene{background:var(--brown-lt);border:1px solid #EFDFB2;border-radius:12px;
+    padding:18px 22px;margin:16px 0;}
+  .scene .t{font-weight:600;margin-bottom:8px;}
+  .scene ol{margin:0;padding-left:22px;}
+  .scene li{margin:6px 0;}
+  .note{border-left:3px solid var(--brown);padding:2px 14px;color:var(--muted);font-size:14px;margin:14px 0;}
+  .qa{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 22px 18px;margin:16px 0;}
+  .qa dl{margin:0;}
+  .qa dt{font-weight:600;margin-top:16px;}
+  .qa dd{margin:4px 0 0;color:var(--muted);font-size:14px;}
+  .ok{color:var(--green);}
+  footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <div class="kicker">产品需求文档 · v0.3 · 2026-11-10</div>
+  <h1>小熊看见你 <span style="font-size:16px;color:#5F5E5A;font-weight:400">Bear Sees You</span></h1>
+  <div class="sub">一个用摄像头手势操纵角色表情的网页。你摆姿势、动手指，屏幕里戴熊头罩的小熊立刻用表情和小动作回应你。</div>
+</header>
+
+<h2><span class="no">01</span>项目定位</h2>
+<ul>
+  <li><b>一句话</b>：打开链接、允许摄像头，小熊就"活"了——视线追着你的手，你握拳它生气，你张开手它咧嘴笑。</li>
+  <li><b>目标用户</b>：拿到链接的任何人，零学习成本，举起手就能玩。</li>
+  <li><b>使用场景</b>：笔记本前置摄像头，桌面或手机浏览器，单人短时间互动（几十秒到几分钟）。</li>
+  <li><b>发布目标（已确认）</b>：发给朋友玩。手机端前置摄像头体验是正式验收项，不是"顺手检查"。</li>
+  <li><b>运行方式</b>：纯静态网页，无账号、无服务器、无安装。所有识别计算在本机浏览器内完成。托管必须 HTTPS（浏览器对摄像头 API 的强制要求）。</li>
+</ul>
+
+<h2><span class="no">02</span>核心体验：打开后的 30 秒</h2>
+<div class="scene">
+  <div class="t">用户视角分镜</div>
+  <ol>
+    <li>打开链接。米白纸感舞台上，小熊正在<b>轻轻呼吸、每隔几秒眨一次眼</b>——没有任何手势它也活着。</li>
+    <li>页面提示"请允许使用摄像头"，附一句话解释：画面只在本机处理，不上传。</li>
+    <li>授权后，用户把手举到镜头前：小熊<b>眼睛立刻转向手的方位</b>，头微微偏过去，像被打扰到的好奇小动物。</li>
+    <li>用户<b>张开五指</b>：小熊的嘴角随张开程度<b>连续咧开</b>，五指全张时已经是大笑。</li>
+    <li>用户<b>握拳</b>：眉毛倒竖、嘴嘟起、腮红加深，头顶冒出怒气符号。</li>
+    <li>用户<b>竖大拇指</b>：小熊单眼 wink，嘴角一侧上挑，得意 3 秒。</li>
+    <li>手离开画面：小熊视线缓缓回中，3 秒后回到待机状态（走神、眨眼）。</li>
+  </ol>
+</div>
+<div class="note">体验的关键质感来自三点：跟随必须<b>即时</b>（150ms 内起反应）、动作必须<b>平滑</b>（弹簧插值，无跳变）、角色必须<b>始终有微动作</b>（呼吸和眨眼不能停）。</div>
+
+<h2><span class="no">03</span>手势清单</h2>
+<p>手势分两类。<b>连续控制</b>：参数每帧跟随手的变化；<b>离散触发</b>：摆出姿势并稳定保持约 0.2 秒才触发，避免识别抖动导致表情乱跳。</p>
+<table>
+  <tr><th style="width:180px">手势</th><th>类型</th><th>小熊的反应</th><th style="width:70px">优先级</th></tr>
+  <tr><td>手在画面中移动</td><td>连续</td><td>瞳孔与视线追手，头部朝手的方向微转</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>手掌倾斜（左右转）</td><td>连续</td><td>头跟着歪，角度与手掌一致（上限 ±12°）</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>单手五指张开程度</td><td>连续</td><td>嘴形在"抿嘴微笑"到"张嘴大笑"之间连续变化</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>握拳</td><td>离散</td><td>生气嘟嘟：倒眉、嘟嘴、腮红加深、怒气符号，手势保持期间锁定该表情</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>竖大拇指</td><td>离散</td><td>得意 wink：单眼闭合、嘴角单侧上挑，触发后保持约 3 秒回落</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>双手比心（两手指尖靠近）</td><td>离散</td><td>害羞：低头、腮红拉满、爱心粒子飘出（手机端隐藏此判定）</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>左右挥手（动作过程）</td><td>离散</td><td>小熊挥手回应；回应形态（整臂挥动或只抬小爪子）待 M2 半身形象定稿时定义</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>手掌快速靠近镜头</td><td>离散</td><td>吓一跳：后仰、汗滴、圆眼（彩蛋）</td><td><span class="tag p2">P2</span></td></tr>
+</table>
+<p style="font-size:14px;color:#5F5E5A">选取原则：全部手势都能由"手指伸直数量 + 关键点间角度/距离"直接算出，无需训练模型。形状相近、容易误判的姿势（数字 1–10、摇滚手势等）整批放弃。</p>
+
+<h3>判定规则（开发与验收依据）</h3>
+<table>
+  <tr><th style="width:170px">手势</th><th>判定条件</th></tr>
+  <tr><td>握拳</td><td>五指全部屈曲（各指指尖到掌根距离低于阈值）</td></tr>
+  <tr><td>竖大拇指</td><td>拇指伸直且其余四指屈曲；与握拳互斥，判定顺序在握拳之后</td></tr>
+  <tr><td>双手比心</td><td>双手同时入画，两手拇指尖与食指尖相互贴近（指尖间距 &lt; 手掌宽度的 30%）</td></tr>
+  <tr><td>左右挥手</td><td>张开手掌状态下，1.2 秒内腕部横坐标往返摆动 ≥ 2 次；触发后冷却 2 秒</td></tr>
+  <tr><td>手掌快速靠近</td><td>手部包围盒面积在 0.5 秒内增长 ≥ 60%；触发后冷却 3 秒</td></tr>
+</table>
+<ul>
+  <li><b>互斥优先级</b>：双手比心 &gt; 竖大拇指 &gt; 握拳 &gt; 连续通道。离散表情锁定期间（如生气按住型），连续通道的嘴形/眉眼参数冻结，视线跟随保留。</li>
+  <li><b>滞回</b>：连续量的触发与解除阈值分离（如张开度 0.7 触发、0.5 解除），防止在阈值附近反复横跳。</li>
+  <li><b>多手策略</b>：非比心状态取置信度最高的一只手；换手时视线经弹簧插值平滑过渡，不瞬移。</li>
+  <li><b>比心的手机端处理</b>：手机端不启用比心判定。前置摄像头加单手举机的场景下，双手入画并让指尖贴近几乎无法做到，保留判定只会让用户摆了姿势却永远触发不了。</li>
+  <li><b>方向语义</b>：预览按镜像显示（照镜子），视线与歪头方向按镜像坐标跟随——用户手往自己的左边移，小熊视线往画面左侧移动。此语义在 M1 定死，不得中途更改。</li>
+</ul>
+
+<h2><span class="no">04</span>表情参数系统</h2>
+<p>小熊由六个图层组成（熊头罩与身体、脸盘、五官、腮红、头顶草莓、特效层）。所有表情都是同一套参数的不同取值，切换表情即插值到新参数，不换图片。</p>
+<table>
+  <tr><th style="width:170px">参数</th><th>范围</th><th>说明</th></tr>
+  <tr><td>pupilX / pupilY</td><td>−1 ~ +1</td><td>瞳孔偏移，视线跟随的核心</td></tr>
+  <tr><td>headTilt / headTurn</td><td>−1 ~ +1</td><td>歪头 / 转头</td></tr>
+  <tr><td>eyeShape</td><td>圆点 / 弧线 / 眯缝 / 闭合</td><td>眨眼、笑眼、wink 用同一参数表达；wink 触发期间覆盖自动眨眼</td></tr>
+  <tr><td>browAngle / browY</td><td>−1 ~ +1</td><td>眉毛角度与高低：倒眉生气、挑眉疑惑</td></tr>
+  <tr><td>mouthShape</td><td>微笑 / 张嘴 / 嘟嘴 / 小圆 / 波浪</td><td>五个嘴形，配 mouthOpen 连续开口度</td></tr>
+  <tr><td>blush</td><td>0 ~ 1</td><td>腮红透明度</td></tr>
+  <tr><td>bounce</td><td>0 ~ 1</td><td>身体弹性缩放（开心时弹跳）</td></tr>
+</table>
+<h3>表情档案（左侧导航展示，点击可手动切换）</h3>
+<table>
+  <tr><th style="width:110px">表情</th><th>参数组合要点</th><th style="width:150px">触发方式</th><th style="width:70px">优先级</th></tr>
+  <tr><td>待机</td><td>视线缓慢游移、每 3–5 秒眨眼、呼吸起伏</td><td>无手入画 3 秒后自动</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>好奇（有手入画）</td><td>视线锁定手、眉毛微挑</td><td>手入画自动</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>开心</td><td>笑眼、嘴角上扬、随张手程度放大</td><td>张手连续控制</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>生气</td><td>倒眉、嘟嘴、腮红加深、怒气符号</td><td>握拳（按住型）</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>得意 wink</td><td>单眼闭合、嘴角单侧上挑</td><td>竖大拇指（点一下型）</td><td><span class="tag p0">P0</span></td></tr>
+  <tr><td>害羞</td><td>低头、腮红满格、爱心粒子</td><td>双手比心</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>疑惑</td><td>单眉抬高、波浪嘴</td><td>导航点击专属（无手势触发）</td><td><span class="tag p1">P1</span></td></tr>
+  <tr><td>吓一跳</td><td>圆眼、后仰、汗滴</td><td>手掌快速靠近</td><td><span class="tag p2">P2</span></td></tr>
+</table>
+<h3>离散表情保持方式（已确认：逐表情配置）</h3>
+<ul>
+  <li><b>按住型</b>（生气）：手势保持多久，表情保持多久，松手后插值回落。</li>
+  <li><b>点一下型</b>（wink、害羞、吓一跳）：触发后固定保持约 3 秒再回落，保持期间忽略同手势重复触发。</li>
+</ul>
+
+<h2><span class="no">05</span>界面与布局</h2>
+<ul>
+  <li><b>左侧</b>：竖排表情档案导航（中文为主 + 英文小字点缀），当前表情高亮；点击导航可手动触发对应表情，不依赖摄像头也能演示。点击触发的表情与手势触发走同一套参数插值，视觉一致；点击后摄像头通路不受影响，下一次手势正常接管。</li>
+  <li><b>中央舞台</b>：米白纸感背景，小熊居中占画面主体；顶部站点标题，杂志感排版——大留白、衬线点缀、编号页脚。</li>
+  <li><b>右侧</b>：识别调试面板——是否检测到手、当前姿势、视线/歪头/张合三个连续参数的实时条形、帧率。</li>
+  <li><b>右下角</b>：摄像头预览小窗（镜像显示），默认显示手部关键点，可一键折叠隐藏。</li>
+  <li><b>首次进入</b>：优雅的授权引导层，说明用途与隐私；引导层必须在浏览器权限弹窗<b>之前</b>出现，隐私说明首屏可见、不需滚动或展开。拒绝授权或设备不可用时进入"鼠标试玩模式"（滑块代替手势）：滑块控制视线、歪头、张合三个连续参数，离散表情经左侧导航点击触发，页面价值不打折。</li>
+  <li><b>手机端布局（发布目标为"发给朋友"，此项为 M2 正式交付）</b>：隐藏右侧调试面板；摄像头小窗默认折叠；表情导航改为底部横排或抽屉。竖屏下小熊仍居中主体。</li>
+</ul>
+<div class="note">排版参照说明：本项目的风格锚点是文字定义（米白纸感、大留白、衬线点缀、编号页脚）。前身"手势识别花朵"只到参考图阶段、未建成站点，无可直接照抄的页面；若 M2 排版时需要更具体的参照，由用户补充参考图。</div>
+
+<h2><span class="no">06</span>非功能需求</h2>
+<table>
+  <tr><th style="width:140px">项</th><th>要求</th></tr>
+  <tr><td>性能</td><td>普通笔记本 30fps 起步；识别与渲染全在浏览器内，无网络往返延迟</td></tr>
+  <tr><td>隐私</td><td>摄像头画面仅在本机内存中处理，不上传、不录制、不落盘，不写 localStorage / IndexedDB；关闭标签页即停止采集</td></tr>
+  <tr><td>兼容性</td><td>桌面 Chrome / Edge / Safari 最新两个大版本；需 HTTPS 或 localhost 环境（浏览器对摄像头 API 的要求）。手机端（前置摄像头）为 M2 正式验收项</td></tr>
+  <tr><td>容错</td><td>光线不足、手部分出画、多手入画时给出文字提示——手出画超过 1 秒提示、回画即消失，光线不足与手出画使用不同文案；拒绝授权、无摄像头、摄像头被占用、非 HTTPS 四种情况均自动进入鼠标试玩模式，每种情况给一行具体原因，不用通用文案；file:// 直接打开时 1 秒内将主界面替换为"需通过本地 HTTP 服务访问"的提示，附可复制的启动命令；页面不崩溃、不卡死</td></tr>
+  <tr><td>体积</td><td>首次加载目标 20MB 内（模型 7.8MB + wasm 约 9.4MB，按实测资产核定），加载时显示进度与待机动画，进度按实际字节推进、不做假进度条</td></tr>
+</table>
+
+<h2><span class="no">07</span>素材清单与加工</h2>
+<table>
+  <tr><th style="width:300px">素材</th><th>状态</th><th>加工动作</th></tr>
+  <tr><td>主形象定妆照（头像版）</td><td class="ok">已生成（项目根目录）</td><td>背景去白转透明；脸盘中部涂白得到"空白脸"底图</td></tr>
+  <tr><td>六格表情表</td><td class="ok">已生成（项目根目录）</td><td>作为表情形状的参考基准（笑眼弯度、嘟嘴宽度），不直接上页面</td></tr>
+  <tr><td>半身版（带小爪子）</td><td class="ok">已生成（项目根目录）</td><td>M2 换用半身版作主形象时，做透明底 + 空白脸加工</td></tr>
+  <tr><td>五官与特效图形</td><td>待做</td><td>用矢量图形按原图描线重绘（眼形×4、眉×3、嘴形×5、爱心/怒气/汗滴），描边色与原图一致</td></tr>
+  <tr><td>手部识别模型 hand_landmarker.task</td><td class="ok">已下载（assets/，7.8MB）</td><td>随站点本地加载，不依赖外部 CDN</td></tr>
+  <tr><td>MediaPipe 运行时（vision_bundle.mjs + wasm）</td><td class="ok">已下载（vendor/）</td><td>本地加载，含 SIMD 与 non-SIMD 两版</td></tr>
+</table>
+
+<h2><span class="no">08</span>技术方案概要</h2>
+<ul>
+  <li><b>识别</b>：MediaPipe Tasks Vision 的 HandLandmarker（浏览器版），每帧输出 21 个手部关键点坐标；手势判定全部用关键点间的距离与角度计算，按第 03 节判定规则实现。</li>
+  <li><b>渲染</b>：角色用 SVG 图层绘制（底图位图 + 矢量五官），参数驱动，天然任意缩放不糊。</li>
+  <li><b>平滑</b>：所有参数经弹簧插值输出；离散手势经 0.2 秒稳定窗口确认；触发/解除阈值分离（滞回）。</li>
+  <li><b>工程形态</b>：纯 HTML + CSS + JS 三个文件 + 素材目录，无构建步骤；发布走 HTTPS 静态托管。</li>
+  <li><b>本地开发方式</b>：必须通过本地 HTTP 服务访问（如 <code>python -m http.server</code>）。直接双击打开（file://）时浏览器拦截 fetch，模型与 wasm 加载不了、摄像头不可用。</li>
+</ul>
+
+<h2><span class="no">09</span>里程碑与验收</h2>
+<table>
+  <tr><th style="width:90px">阶段</th><th>交付内容</th><th>验收标准（可逐条打勾）</th></tr>
+  <tr>
+    <td><b>M1 原型</b></td>
+    <td>素材加工完成、图层搭建、摄像头接入、三个连续通道、握拳与点赞两个离散表情、右侧调试面板、本地 HTTP 服务启动脚本</td>
+    <td>□ 笔记本摄像头下 30fps<br>□ 手在画面内移动时视线跟随（含 30cm 近距），起反应在 150ms 内<br>□ 镜像方向语义符合第 03 节定义（手左移视线左移）<br>□ 握拳 / 松手过程中表情无跳变<br>□ 握拳与竖大拇指互斥，无误判串扰<br>□ 拒绝摄像头授权后仍可用滑块试玩</td>
+  </tr>
+  <tr>
+    <td><b>M2 打磨</b></td>
+    <td>全部表情档案、比心与挥手、粒子特效、左侧导航、杂志感排版精修、防抖参数调优、<b>手机端适配与真机验证</b></td>
+    <td>□ 连续使用 5 分钟无误触发<br>□ 三个新用户不读说明就能玩起来<br>□ 关闭摄像头小窗后画面无残留黑块<br>□ 手机浏览器（前置摄像头）可玩，布局符合第 05 节手机端规格<br>□ 换手时视线平滑过渡无瞬移</td>
+  </tr>
+  <tr>
+    <td><b>M3 发布</b></td>
+    <td>HTTPS 静态托管上线、分享链接、分享元数据</td>
+    <td>□ 手机浏览器打开可用<br>□ 弱网首次加载有进度提示<br>□ 分享链接标题与缩略图正常：og:title / og:description / og:image 齐全，缩略图用小熊主形象</td>
+  </tr>
+</table>
+
+<h2><span class="no">10</span>风险与预案</h2>
+<table>
+  <tr><th style="width:200px">风险</th><th>预案</th></tr>
+  <tr><td>识别抖动导致表情闪烁</td><td>0.2 秒稳定窗口 + 弹簧插值 + 滞回阈值三重保险；M2 阶段用真实使用录像回放调参</td></tr>
+  <tr><td>握拳与竖大拇指误判串扰</td><td>判定顺序固定（拇指先于全拳），互斥逻辑写进状态机而非逐帧比较</td></tr>
+  <tr><td>三张素材角色形象不完全一致</td><td>以定妆照为唯一主形象；表情表仅提取"形"的参考，不做逐帧对照</td></tr>
+  <tr><td>位图去白后边缘发灰</td><td>去白后向内收缩 1px 收边；小熊本身粗描边，收缩不可见</td></tr>
+  <tr><td>手机端性能不足</td><td>移动端降级为 15fps 识别 + 关闭粒子特效，保证基本互动</td></tr>
+  <tr><td>浏览器不支持摄像头 / 摄像头被占用</td><td>自动进入鼠标试玩模式，文字说明原因，功能与展示价值保留</td></tr>
+  <tr><td>file:// 直接打开导致模型加载失败</td><td>本地开发一律走 HTTP 服务；页面上线前用 M1 启动脚本验证</td></tr>
+</table>
+
+<h2><span class="no">11</span>已确认的决策（v0.2 定稿）</h2>
+<div class="qa">
+  <dl>
+    <dt>1. 主形象：头像版先行，半身版升级</dt>
+    <dd>M1 用头像版（表情最聚焦），M2 换半身带爪版，支撑挥手、比心的回应动作。</dd>
+    <dt>2. 离散表情保持：逐表情配置</dt>
+    <dd>生气=按住型；wink、害羞、吓一跳=点一下型（3 秒回落 + 冷却）。</dd>
+    <dt>3. 界面语言：中文为主 + 英文小字点缀</dt>
+    <dd>延续杂志感排版，不做中英切换。</dd>
+    <dt>4. 声音：P2，默认静音</dt>
+    <dd>M1/M2 不投入；若做，表情切换配极轻音效，点击开启（浏览器要求先交互才允许出声）。开关状态不持久化，刷新后回到默认静音。</dd>
+    <dt>5. 发布目标：发给朋友玩</dt>
+    <dd>手机端前置摄像头验证升级为 M2 正式验收项；不做"关于"页，M3 只需分享标题与缩略图正常。</dd>
+  </dl>
+</div>
+
+<h2><span class="no">12</span>变更记录</h2>
+<ul>
+  <li><b>v0.3（2026-11-10）</b>：依据用户故事（28 条）修订。<b>03 节</b>：比心在手机端隐藏判定（US-11）；挥手回应形态待 M2 半身形象定稿（US-12）。<b>05 节</b>：授权引导层先于浏览器权限弹窗、隐私说明首屏可见（US-15）；试玩模式下离散表情经左侧导航点击触发（US-18，"待确认"第 4 条落定）；导航点击与手势触发共用参数插值、点击后手势正常接管（US-14）。<b>06 节</b>：隐私补充不写 localStorage / IndexedDB（US-16）；容错扩展为四种触发加具体原因文案、手出画提示时序、光线不足独立文案、file:// 检测提示与启动命令（US-18/21/26）；体积补充进度按实际字节推进（US-19）。<b>09 节</b>：M3 验收明确 og 元数据与缩略图要求（US-27）。<b>11 节</b>：静音开关不持久化（US-28）。</li>
+  <li><b>v0.2（2026-11-10）</b>：定稿版。</li>
+</ul>
+
+<footer>
+  小熊看见你 · PRD v0.3 · 2026-11-10 · 定稿后按 M1 → M2 → M3 顺序实施，每阶段按第 09 节验收标准逐条打勾交付
+</footer>
+
+</div>
+</body>
+</html>

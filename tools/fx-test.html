@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><title>粒子切换测试</title>
+<style>
+body{font:13px/1.7 ui-monospace,Consolas,monospace;padding:16px;white-space:pre}
+iframe{position:fixed;right:-1200px;top:0;width:900px;height:700px;border:0;opacity:0}
+</style></head><body>
+<div id="out">loading…</div>
+<iframe id="f" src="../index.html?sim=1"></iframe>
+<script type="module">
+/* 验证"换表情时旧粒子立刻退场"：
+   粒子各自有 2~3 秒寿命，不主动撤的话会出现
+   头上挂着井号、脸上已经在冒爱心这种两种情绪并存的情况。 */
+const out = document.getElementById('out');
+const lines = [];
+const log = (s) => { lines.push(s); out.textContent = lines.join('\n'); };
+let failed = 0;
+const ok = (name, cond, extra = '') => {
+  if (!cond) failed++;
+  log(`${cond ? 'PASS' : 'FAIL'}  ${name}${extra ? '（' + extra + '）' : ''}`);
+};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const f = document.getElementById('f');
+await new Promise((r) => { f.onload = r; });
+const W = f.contentWindow;
+for (let i = 0; i < 120 && !W.__sim; i++) await sleep(50);
+const sim = W.__sim;
+if (!sim) { log('ERR 无法取得 __sim'); throw new Error('no sim'); }
+
+const has = (cls) => sim.fx().some((c) => (c || '').includes(cls));
+
+sim.paint('shy');
+sim.tickFx();
+await sleep(120);
+ok('害羞 → 出现爱心', has('fx-heart'), sim.fx().join(' | '));
+
+sim.paint('anger');
+sim.tickFx();
+await sleep(60);
+ok('切到生气后，爱心在淡出（还在但马上消失）', has('fx-anger'));
+await sleep(600);
+ok('切换到生气 0.6 秒后爱心已清空', !has('fx-heart'), sim.fx().join(' | ') || '空');
+ok('生气符号还在', has('fx-anger'), sim.fx().join(' | '));
+
+sim.paint('neutral');
+await sleep(600);
+ok('切回中性 0.6 秒后画面干净', sim.fx().length === 0, sim.fx().join(' | ') || '空');
+
+log(failed === 0 ? '\n全部通过' : `\n${failed} 项失败`);
+</script>
+</body></html>

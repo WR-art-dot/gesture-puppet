@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>手势玩偶</title>
+<style>
+  :root{
+    --paper:#FBFAF5; --ink:#26241F; --mute:#8E8A7E; --line:#E5E1D3;
+    --accent:#854F0B; --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+    display:flex;flex-direction:column;min-height:100vh;
+  }
+  header{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:20px 26px 14px;border-bottom:1px solid var(--line);
+  }
+  .brand{font-size:13px;letter-spacing:.26em;color:var(--accent);}
+  .brand b{font-weight:600;letter-spacing:.18em;}
+  .status{font-size:12px;color:var(--mute);letter-spacing:.06em;}
+  .status.on{color:#3F7A4E;}
+  .status.err{color:#B4472E;}
+
+  main{
+    flex:1;display:grid;grid-template-columns:212px minmax(320px,1fr) 306px;
+    gap:22px;padding:22px 26px 26px;align-items:stretch;min-height:0;
+  }
+
+  /* 左侧：表情档案 */
+  .rail-title{font-size:11px;letter-spacing:.24em;color:var(--mute);margin-bottom:12px;}
+  .rail{align-self:start;}
+  .nav{list-style:none;margin:0;padding:0;}
+  .nav li{
+    display:flex;align-items:baseline;gap:8px;
+    padding:7px 8px 7px 6px;border-radius:6px;cursor:pointer;
+    font-size:13.5px;color:#4A4740;transition:background .15s,color .15s;
+  }
+  .nav li:hover{background:#F2EFE4;}
+  .nav li.active{background:#F1EADA;color:#6B3F05;}
+  .nav li i{font-style:normal;font-size:10px;color:#B6B0A0;letter-spacing:.06em;min-width:16px;}
+  .rail-note{font-size:11px;line-height:1.7;color:#A5A091;margin-top:16px;padding-right:6px;}
+
+  /* 中间：舞台 */
+  .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding-top:6px;}
+  .bear{position:relative;width:100%;max-width:430px;}
+  #bear{filter:drop-shadow(0 18px 28px rgba(90,74,45,.10));}
+  .bear svg{width:100%;height:auto;aspect-ratio:var(--face-ratio, 946 / 964);display:block;}
+  /* 特效层：与熊同框同坐标，绝不挡鼠标 */
+  .bear .fx{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;pointer-events:none;}
+  .stage-foot{margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  button{
+    font-family:inherit;font-size:13px;letter-spacing:.12em;
+    padding:9px 22px;border-radius:999px;border:1px solid #D8CFB6;
+    background:#fff;color:#6B3F05;cursor:pointer;transition:.15s;
+  }
+  button:hover{background:#F7F2E4;border-color:#C9B98F;}
+  button[hidden]{display:none;}
+  .hint{font-size:11.5px;color:var(--mute);letter-spacing:.04em;text-align:center;max-width:340px;line-height:1.7;}
+
+  /* 右侧：识别面板 */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 16px;align-self:start;}
+  .panel-title{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11px;letter-spacing:.24em;color:var(--mute);margin-bottom:10px;
+  }
+  .mini{
+    font-size:10.5px;letter-spacing:.1em;padding:2px 9px;border-radius:999px;
+    border:1px solid #E4DECD;background:#fff;color:#8C877A;cursor:pointer;
+    font-family:inherit;line-height:1.7;transition:.15s;
+  }
+  .mini:hover{background:#F7F2E4;border-color:#D3C6A6;color:#6B3F05;}
+  .cam-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#EDEAE0;border-radius:8px;overflow:hidden;}
+  .cam-wrap[hidden]{display:none;}   /* 折叠后不留一块空白 */
+  #video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block;}
+  #overlay{position:absolute;inset:0;width:100%;height:100%;}
+  .cam-off{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:#9E9888;letter-spacing:.08em;
+  }
+  .cam-off[hidden]{display:none;}   /* display:flex 会压过 hidden 属性，这里显式关掉 */
+  .cam-note{
+    position:absolute;left:8px;right:8px;bottom:8px;
+    font-size:11px;line-height:1.6;letter-spacing:.04em;color:#6B3F05;
+    background:rgba(255,251,240,.94);border:1px solid #E6DCC2;
+    border-radius:999px;padding:3px 10px;text-align:center;
+  }
+  .cam-note[hidden]{display:none;}
+  .params{margin:14px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;}
+  .params div{display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px dotted #E7E2D4;padding-bottom:4px;}
+  .params div.wide{grid-column:1 / -1;}
+  .params dt{font-size:11.5px;color:#8C877A;letter-spacing:.04em;}
+  .params dd{margin:0;font-size:12.5px;font-variant-numeric:tabular-nums;color:#3D3A33;}
+  .fallback{margin-top:14px;border-top:1px solid var(--line);padding-top:12px;display:none;}
+  .fallback.show{display:block;}
+  .fallback p{font-size:11px;color:var(--mute);margin:0 0 10px;line-height:1.6;}
+  .fallback label{display:block;font-size:11px;color:#8C877A;margin-bottom:8px;}
+  .fallback input[type=range]{width:100%;accent-color:#C08A3E;}
+
+  @media (max-width:900px){
+    main{grid-template-columns:1fr;gap:16px;}
+    .rail{order:3;}
+    .nav{display:flex;flex-wrap:wrap;gap:4px;}
+    .panel{order:2;}
+  }
+
+  /* 粒子：克制版，只在害羞 / 生气 / 惊讶出现 */
+  .fx-heart,.fx-anger,.fx-spark{transform-box:fill-box;transform-origin:center;}
+  .fx-heart-l{animation:fxHeartL 2.8s cubic-bezier(.22,.68,.32,1) forwards;}
+  .fx-heart-r{animation:fxHeartR 2.8s cubic-bezier(.22,.68,.32,1) forwards;}
+  .fx-anger{animation:fxAnger 2.2s ease-out forwards;}
+  .fx-spark{animation:fxSpark 1.2s ease-out forwards;}
+
+
+  @keyframes fxHeartL{
+    0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0deg);}
+    12%{opacity:.95;}
+    76%{opacity:.68;}
+    100%{opacity:0;transform:translate(-64px,-192px) scale(1) rotate(-14deg);}
+  }
+  @keyframes fxHeartR{
+    0%{opacity:0;transform:translate(0,0) scale(.3) rotate(0deg);}
+    12%{opacity:.95;}
+    76%{opacity:.68;}
+    100%{opacity:0;transform:translate(64px,-192px) scale(1) rotate(14deg);}
+  }
+  @keyframes fxAnger{
+    0%{opacity:0;transform:scale(.28) rotate(-14deg);}
+    10%{opacity:1;transform:scale(1.08) rotate(0deg);}
+    26%{opacity:1;transform:scale(.94);}
+    42%{opacity:1;transform:scale(1.03);}
+    88%{opacity:.9;transform:scale(1);}
+    100%{opacity:0;transform:scale(1);}
+  }
+  @keyframes fxSpark{
+    0%{opacity:0;transform:scale(.55);}
+    8%{opacity:1;}
+    55%{opacity:.8;}
+    100%{opacity:0;transform:scale(1.32);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .fx-heart-l,.fx-heart-r,.fx-anger,.fx-spark{animation:none;opacity:0;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b id="brandName">手势玩偶</b> · GESTURE PUPPET</div>
+  <div class="status" id="status">摄像头未启动</div>
+</header>
+
+<main>
+  <aside class="rail">
+    <div class="rail-title">表情档案</div>
+    <ul class="nav" id="nav"></ul>
+    <p class="rail-note">手势接管表情：张手=大笑（张越大嘴越大），握拳=生气，点赞=wink，单手比心=害羞。这四个都是单手静止姿势，识别最稳。左侧可以手动切换全部八种表情。</p>
+  </aside>
+
+  <section class="stage">
+    <div class="bear">
+      <div id="bear"></div>
+      <svg class="fx" id="fx" viewBox="0 0 946 964" aria-hidden="true"><g id="fxg"></g></svg>    </div>
+    <div class="stage-foot">
+      <button id="startBtn">启动摄像头</button>
+      <div class="hint" id="hint">允许摄像头后，把手抬到画面前——它的眼珠会跟着你的手走。</div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <div class="panel-title"><span>识别</span><button class="mini" id="camToggle" aria-expanded="true">收起</button></div>
+    <div class="cam-wrap" id="camWrap">
+      <video id="video" playsinline muted autoplay></video>
+      <canvas id="overlay" width="640" height="480"></canvas>
+      <div class="cam-off" id="camOff">摄像头未开启</div>
+      <div class="cam-note" id="camNote" hidden></div>
+    </div>
+    <dl class="params">
+      <div class="wide"><dt>当前手势</dt><dd id="pGesture">—</dd></div>
+      <div class="wide"><dt>比心（单手）</dt><dd id="pHeart">—</dd></div>
+      <div class="wide"><dt>手指展开（驱动嘴）</dt><dd id="pSpread">0%</dd></div>
+      <div class="wide"><dt>伸直手指数</dt><dd id="pOpen">0 / 4</dd></div>
+      <div><dt>视线 X</dt><dd id="pGx">0.00</dd></div>
+      <div><dt>视线 Y</dt><dd id="pGy">0.00</dd></div>
+      <div><dt>歪头</dt><dd id="pTilt">0.0°</dd></div>
+      <div><dt>帧率</dt><dd id="pFps">—</dd></div>
+      <div class="wide"><dt>画面亮度（低于 42 判暗）</dt><dd id="pBright">—</dd></div>
+    </dl>
+    <div class="fallback" id="fallback">
+      <p>摄像头不可用时，用滑块代替手势。</p>
+      <label>视线左右 <input type="range" id="sGx" min="-100" max="100" value="0"></label>
+      <label>视线上下 <input type="range" id="sGy" min="-100" max="100" value="0"></label>
+      <label>歪头 <input type="range" id="sTilt" min="-6" max="6" value="0"></label>
+    </div>
+  </aside>
+</main>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

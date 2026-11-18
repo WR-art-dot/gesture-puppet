@@ -1,0 +1,30 @@
+# 调试与中间产物
+.workbuddy/
+tools/_tmp/
+tools/_diag/
+assets/_*.png
+assets/character-head.png
+assets/character-body.png
+
+# 一次性探索脚本（功能已并入 tools/prep_face.py）
+tools/analyze.py
+tools/detect.py
+tools/make_base.py
+tools/split_layers.py
+
+# 视觉调试页
+compare.html
+faces.html
+mouth-test.html
+preview.html
+stage.html
+tilt-compare.html
+
+# 原始生成图（素材来源，运行不需要）
+扁平矢量*.png
+同一个卡通角色的六格表情表*.png
+
+# 系统
+Thumbs.db
+.DS_Store
+*.log
